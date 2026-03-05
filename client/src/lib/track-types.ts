@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type PieceType = 'straight' | 'curve' | 'startFinish' | 'sCurve' | 'pitLane' | 'bridge' | 'tunnel' | 'grandstand' | 'gravel' | 'grass' | 'paddock' | 'safetyCar' | 'kerb' | 'wall' | 'tireStack' | 'floodlight';
+export type PieceType = 'straight' | 'curve' | 'startFinish' | 'sCurve' | 'pitLane' | 'bridge' | 'tunnel' | 'grandstand' | 'gravel' | 'grass' | 'paddock' | 'safetyCar' | 'kerb' | 'wall' | 'tireStack' | 'floodlight' | 'tree' | 'safetyBarrier';
 
 export interface TrackPiece {
   id: string;
@@ -54,6 +54,12 @@ export const createPiece = (type: string, x: number, y: number): TrackPiece => {
       return { ...base, type: 'tunnel', length: 200 };
     case 'grandstand':
       return { ...base, type: 'grandstand', length: 150, width: 40 };
+    case 'floodlight':
+      return { ...base, type, width: 20, length: 20 };
+    case 'tree':
+      return { ...base, type, width: 40, length: 40 };
+    case 'safetyBarrier':
+      return { ...base, type, width: 20, length: 60, curbColor: '#3b82f6' };
     default:
       return { ...base, length: 200 };
   }

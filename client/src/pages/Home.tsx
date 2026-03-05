@@ -3,8 +3,9 @@ import { Link } from 'wouter';
 import { useTracks } from '@/hooks/use-tracks';
 import { TrackCard } from '@/components/TrackCard';
 import { Button } from '@/components/ui/button';
-import { Plus, Flag, Trophy, Target, Loader2 } from 'lucide-react';
+import { Plus, Flag, Trophy, Target, Loader2, Map } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function Home() {
   const { data: tracks, isLoading } = useTracks();
@@ -132,6 +133,84 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-card/30 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-primary" />
+            <span className="font-display font-bold text-xl tracking-tight">F1 Designer</span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="hover:text-primary transition-colors">Terms of Service</button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-card border-white/10">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-display">Terms of Service</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 text-sm leading-relaxed opacity-80">
+                  <p>Welcome to F1 Designer. By using our platform, you agree to the following terms:</p>
+                  <h4 className="font-bold text-foreground">1. Acceptance of Terms</h4>
+                  <p>By accessing or using F1 Designer, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+                  <h4 className="font-bold text-foreground">2. User Creations</h4>
+                  <p>Any track designs created using our tools remain your intellectual property. However, by saving them to our community gallery, you grant F1 Designer a non-exclusive license to display and share your work with other users.</p>
+                  <h4 className="font-bold text-foreground">3. Prohibited Conduct</h4>
+                  <p>Users are prohibited from using the platform for any illegal activities or to create content that is offensive, defamatory, or violates the rights of others.</p>
+                  <h4 className="font-bold text-foreground">4. Limitation of Liability</h4>
+                  <p>F1 Designer is provided "as is" without any warranties. We are not liable for any damages resulting from the use or inability to use our service.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="hover:text-primary transition-colors">Privacy Policy</button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-card border-white/10">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-display">Privacy Policy</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 text-sm leading-relaxed opacity-80">
+                  <p>Your privacy is important to us. This policy outlines how we handle your data:</p>
+                  <h4 className="font-bold text-foreground">1. Information We Collect</h4>
+                  <p>We collect minimal information necessary to provide our services, including your "Creator Name" (if provided) and the track data you save.</p>
+                  <h4 className="font-bold text-foreground">2. How We Use Information</h4>
+                  <p>Data is used solely to save your circuit designs and display them in the community gallery. We do not sell your personal information to third parties.</p>
+                  <h4 className="font-bold text-foreground">3. Data Storage</h4>
+                  <p>Your track designs and associated metadata are stored securely in our database. You can request deletion of your tracks at any time.</p>
+                  <h4 className="font-bold text-foreground">4. Contact Us</h4>
+                  <p>If you have questions about your data or this policy, please contact us through the Replit project interface.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="hover:text-primary transition-colors">Cookie Policy</button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-card border-white/10">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-display">Cookie Policy</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 text-sm leading-relaxed opacity-80">
+                  <p>This site uses essential cookies to ensure functionality:</p>
+                  <h4 className="font-bold text-foreground">1. Essential Cookies</h4>
+                  <p>We use small data files (cookies) to maintain your session and ensure the editor functions correctly. These are required for the application to work.</p>
+                  <h4 className="font-bold text-foreground">2. Analytical Cookies</h4>
+                  <p>We may use basic analytics to understand how users interact with our track designer to improve the experience.</p>
+                  <h4 className="font-bold text-foreground">3. Managing Cookies</h4>
+                  <p>Most browsers allow you to control cookies through their settings. However, disabling essential cookies may prevent you from using the designer.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} F1 Designer. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

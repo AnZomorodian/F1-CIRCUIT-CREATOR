@@ -20,6 +20,8 @@ const TOOLS = [
   { id: 'wall', name: 'Armco Wall', icon: Square, desc: 'Safety barrier' },
   { id: 'tireStack', name: 'Tire Stack', icon: CircleDot, desc: 'Soft barrier' },
   { id: 'floodlight', name: 'Floodlight', icon: Lightbulb, desc: 'Night racing' },
+  { id: 'tree', name: 'Forest Tree', icon: Trees, desc: 'Trackside scenery' },
+  { id: 'safetyBarrier', name: 'Tecpro Barrier', icon: Square, desc: 'Modern safety' },
 ];
 
 export const Toolbox: React.FC = () => {

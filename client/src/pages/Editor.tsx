@@ -26,7 +26,36 @@ export default function Editor() {
 
   const [pieces, setPieces] = useState<TrackPiece[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(true);
+  const [undoStack, setUndoStack] = useState<TrackPiece[][]>([]);
+  const [redoStack, setRedoStack] = useState<TrackPiece[][]>([]);
+
+  const [autoConnect, setAutoConnect] = useState(false);
+
+  const GRID_SIZE = 50;
   
+  const saveState = () => {
+    setUndoStack(prev => [...prev, [...pieces]].slice(-20));
+    setRedoStack([]);
+  };
+
+  const undo = () => {
+    if (undoStack.length === 0) return;
+    const previous = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, [...pieces]]);
+    setUndoStack(prev => prev.slice(0, -1));
+    setPieces(previous);
+    toast({ title: "Undo" });
+  };
+
+  const redo = () => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, [...pieces]]);
+    setRedoStack(prev => prev.slice(0, -1));
+    setPieces(next);
+    toast({ title: "Redo" });
+  };
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [creatorName, setCreatorName] = useState('Anonymous Racer');
@@ -71,6 +100,7 @@ export default function Editor() {
     const relPos = transform.point(pos);
 
     const newPiece = createPiece(type, relPos.x, relPos.y);
+    saveState();
     setPieces([...pieces, newPiece]);
     setSelectedId(newPiece.id);
   };
@@ -86,22 +116,61 @@ export default function Editor() {
     if (!selectedId) return;
     const piece = pieces.find(p => p.id === selectedId);
     if (!piece) return;
+    saveState();
     const newPiece = { ...piece, id: Math.random().toString(36).substr(2, 9), x: piece.x + 20, y: piece.y + 20 };
     setPieces([...pieces, newPiece]);
     setSelectedId(newPiece.id);
     toast({ title: "Piece Duplicated" });
   };
 
+  const clearCanvas = () => {
+    if (confirm("Are you sure you want to clear the entire canvas?")) {
+      saveState();
+      setPieces([]);
+      setSelectedId(null);
+      toast({ title: "Canvas Cleared" });
+    }
+  };
+
+  const deletePiece = (id: string) => {
+    saveState();
+    setPieces(pieces.filter(p => p.id !== id));
+    setSelectedId(null);
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if (selectedId) {
-        setPieces(pieces.filter(p => p.id !== selectedId));
-        setSelectedId(null);
+        deletePiece(selectedId);
       }
     }
     if (e.ctrlKey && e.key === 'd') {
       e.preventDefault();
       duplicatePiece();
+    }
+    if (e.ctrlKey && e.key === 'z') {
+      e.preventDefault();
+      undo();
+    }
+    if (e.ctrlKey && e.key === 'y') {
+      e.preventDefault();
+      redo();
+    }
+    if (e.key.startsWith('Arrow') && selectedId) {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      setPieces(prev => prev.map(p => {
+        if (p.id === selectedId) {
+          let nx = p.x;
+          let ny = p.y;
+          if (e.key === 'ArrowLeft') nx -= step;
+          if (e.key === 'ArrowRight') nx += step;
+          if (e.key === 'ArrowUp') ny -= step;
+          if (e.key === 'ArrowDown') ny += step;
+          return { ...p, x: nx, y: ny };
+        }
+        return p;
+      }));
     }
   };
 
@@ -142,55 +211,57 @@ export default function Editor() {
     let newX = e.target.x();
     let newY = e.target.y();
 
-    // Magnetic Snapping Logic
-    const SNAP_THRESHOLD = 50; // Increased threshold for better feel
-    
-    for (const other of pieces) {
-      if (other.id === id) continue;
+    if (autoConnect) {
+      // Magnetic Snapping Logic
+      const SNAP_THRESHOLD = 50; // Increased threshold for better feel
+      
+      for (const other of pieces) {
+        if (other.id === id) continue;
 
-      const getPoints = (p: TrackPiece) => {
-        const rad = (p.rotation * Math.PI) / 180;
-        const cos = Math.cos(rad);
-        const sin = Math.sin(rad);
-        
-        // Start point (p1)
-        const p1 = { x: p.x, y: p.y };
-        
-        // End point (p2)
-        let p2 = { x: p.x, y: p.y };
-        
-        if (p.type === 'curve' || p.type === 'sCurve') {
-           const endRad = ((p.rotation + p.angle) * Math.PI) / 180;
-           p2.x = p.x + p.radius * Math.cos(endRad);
-           p2.y = p.y + p.radius * Math.sin(endRad);
-        } else {
-           p2.x = p.x + p.length * cos;
-           p2.y = p.y + p.length * sin;
+        const getPoints = (p: TrackPiece) => {
+          const rad = (p.rotation * Math.PI) / 180;
+          const cos = Math.cos(rad);
+          const sin = Math.sin(rad);
+          
+          // Start point (p1)
+          const p1 = { x: p.x, y: p.y };
+          
+          // End point (p2)
+          let p2 = { x: p.x, y: p.y };
+          
+          if (p.type === 'curve' || p.type === 'sCurve') {
+             const endRad = ((p.rotation + p.angle) * Math.PI) / 180;
+             p2.x = p.x + p.radius * Math.cos(endRad);
+             p2.y = p.y + p.radius * Math.sin(endRad);
+          } else {
+             p2.x = p.x + p.length * cos;
+             p2.y = p.y + p.length * sin;
+          }
+
+          return { p1, p2 };
+        };
+
+        const my = getPoints({ ...piece, x: newX, y: newY });
+        const target = getPoints(other);
+
+        const dist = (a: any, b: any) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+
+        // Snap logic: Try to connect my start to their end, or my end to their start
+        if (dist(my.p1, target.p2) < SNAP_THRESHOLD) {
+          newX = target.p2.x;
+          newY = target.p2.y;
+          // Also snap rotation to match or continue the flow
+          // For a seamless connection, my rotation should align with the 'exit' angle of the previous piece
+          const targetExitRotation = other.type === 'curve' || other.type === 'sCurve' ? other.rotation + other.angle : other.rotation;
+          piece.rotation = targetExitRotation;
+          break;
+        } else if (dist(my.p2, target.p1) < SNAP_THRESHOLD) {
+          const myPoints = getPoints(piece);
+          const offset = { x: myPoints.p2.x - piece.x, y: myPoints.p2.y - piece.y };
+          newX = target.p1.x - offset.x;
+          newY = target.p1.y - offset.y;
+          break;
         }
-
-        return { p1, p2 };
-      };
-
-      const my = getPoints({ ...piece, x: newX, y: newY });
-      const target = getPoints(other);
-
-      const dist = (a: any, b: any) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
-
-      // Snap logic: Try to connect my start to their end, or my end to their start
-      if (dist(my.p1, target.p2) < SNAP_THRESHOLD) {
-        newX = target.p2.x;
-        newY = target.p2.y;
-        // Also snap rotation to match or continue the flow
-        // For a seamless connection, my rotation should align with the 'exit' angle of the previous piece
-        const targetExitRotation = other.type === 'curve' || other.type === 'sCurve' ? other.rotation + other.angle : other.rotation;
-        piece.rotation = targetExitRotation;
-        break;
-      } else if (dist(my.p2, target.p1) < SNAP_THRESHOLD) {
-        const myPoints = getPoints(piece);
-        const offset = { x: myPoints.p2.x - piece.x, y: myPoints.p2.y - piece.y };
-        newX = target.p1.x - offset.x;
-        newY = target.p1.y - offset.y;
-        break;
       }
     }
 
@@ -200,6 +271,7 @@ export default function Editor() {
       }
       return p;
     }));
+    saveState();
   };
 
   const handleDragStart = (e: any) => {
@@ -242,6 +314,24 @@ export default function Editor() {
 
   const selectedPiece = pieces.find(p => p.id === selectedId) || null;
 
+  const totalLength = pieces.reduce((acc, p) => {
+    if (p.type === 'curve' || p.type === 'sCurve') {
+      return acc + (2 * Math.PI * p.radius * (p.angle / 360));
+    }
+    return acc + (p.length || 0);
+  }, 0);
+
+  const exportAsImage = () => {
+    const uri = stageRef.current.toDataURL();
+    const link = document.createElement('a');
+    link.download = `${title || 'circuit'}.png`;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "Image Exported" });
+  };
+
   if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -259,9 +349,24 @@ export default function Editor() {
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div className="w-px h-6 bg-white/20 mx-2" />
-          <h1 className="font-display font-bold text-xl tracking-wide flex items-center gap-2 text-glow">
-            <Play className="w-5 h-5 text-primary fill-primary" /> F1 Designer
-          </h1>
+          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-1.5 border border-white/5">
+            <span className="text-xs font-mono text-muted-foreground uppercase">Length</span>
+            <span className="text-sm font-bold text-primary">{(totalLength / 10).toFixed(1)}m</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={exportAsImage} className="border-white/10 hover:bg-white/5 ml-2">
+            Export PNG
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setAutoConnect(!autoConnect)} 
+            className={`border-white/10 ml-2 ${autoConnect ? 'bg-primary/20 text-primary border-primary/50' : 'opacity-50'}`}
+          >
+            Auto-Snap {autoConnect ? 'ON' : 'OFF'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={clearCanvas} className="border-destructive/50 text-destructive hover:bg-destructive/10 ml-2">
+            Clear
+          </Button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -339,6 +444,12 @@ export default function Editor() {
             className="cursor-crosshair active:cursor-grabbing"
           >
             <Layer>
+              {showGrid && Array.from({ length: 40 }).map((_, i) => (
+                <React.Fragment key={`grid-${i}`}>
+                  <rect width={5000} height={1} x={0} y={i * GRID_SIZE} fill="rgba(255,255,255,0.05)" />
+                  <rect width={1} height={5000} x={i * GRID_SIZE} y={0} fill="rgba(255,255,255,0.05)" />
+                </React.Fragment>
+              ))}
               {pieces.map((piece) => (
                 <TrackPieceRenderer
                   key={piece.id}
@@ -368,12 +479,10 @@ export default function Editor() {
         <PropertiesPanel 
           selectedPiece={selectedPiece}
           onChange={(updated) => {
+            saveState();
             setPieces(pieces.map(p => p.id === updated.id ? updated : p));
           }}
-          onDelete={(id) => {
-            setPieces(pieces.filter(p => p.id !== id));
-            setSelectedId(null);
-          }}
+          onDelete={deletePiece}
         />
       </div>
     </div>

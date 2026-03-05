@@ -78,6 +78,40 @@ export const TrackPieceRenderer: React.FC<Props> = ({ piece, isSelected, onSelec
         </Group>
       )}
 
+      {piece.type === 'safetyBarrier' && (
+        <Group>
+          <Rect
+            width={piece.length}
+            height={piece.width}
+            fill={piece.curbColor || '#3b82f6'}
+            cornerRadius={4}
+            stroke="#111"
+            strokeWidth={2}
+          />
+          <Line
+            points={[0, piece.width/2, piece.length, piece.width/2]}
+            stroke="white"
+            strokeWidth={2}
+            dash={[10, 5]}
+          />
+        </Group>
+      )}
+
+      {piece.type === 'tree' && (
+        <Group>
+          <Circle
+            radius={piece.width / 2}
+            fill="#166534"
+            shadowBlur={5}
+          />
+          <Circle
+            radius={piece.width / 3}
+            fill="#15803d"
+            y={-2}
+          />
+        </Group>
+      )}
+
       {piece.type === 'wall' && (
         <Rect width={piece.length} height={10} fill="#94a3b8" stroke="#475569" strokeWidth={1} />
       )}
