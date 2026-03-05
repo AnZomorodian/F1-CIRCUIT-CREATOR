@@ -40,7 +40,14 @@ export const TrackPieceRenderer: React.FC<Props> = ({ piece, isSelected, onSelec
     });
   };
 
-  const ASPHALT_COLOR = '#1f1f22';
+  const getAsphaltColor = () => {
+    if (piece.theme === 'classic') return '#4a4a4f';
+    if (piece.theme === 'night') return '#050505';
+    if (piece.theme === 'wet') return '#111115';
+    return '#1f1f22'; // modern
+  };
+
+  const ASPHALT_COLOR = getAsphaltColor();
   const CURB_DASH = [20, 20];
 
   return (
@@ -70,6 +77,25 @@ export const TrackPieceRenderer: React.FC<Props> = ({ piece, isSelected, onSelec
       shadowBlur={isSelected ? 15 : 10}
       shadowOpacity={isSelected ? 0.8 : 0.3}
     >
+      {piece.label && (
+        <Text
+          text={piece.label}
+          y={-25}
+          width={200}
+          align="center"
+          x={-100}
+          fill="white"
+          fontSize={12}
+          fontStyle="bold"
+          opacity={0.7}
+        />
+      )}
+      {piece.type === 'water' && (
+        <Rect width={piece.length} height={piece.width} fill="#1d4ed8" cornerRadius={8} opacity={0.6} />
+      )}
+      {piece.type === 'asphaltRunoff' && (
+        <Rect width={piece.length} height={piece.width} fill="#334155" cornerRadius={4} opacity={0.8} />
+      )}
       {piece.type === 'safetyCar' && (
         <Group>
           <Rect width={40} height={20} fill="#facc15" cornerRadius={2} />

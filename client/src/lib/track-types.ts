@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type PieceType = 'straight' | 'curve' | 'startFinish' | 'sCurve' | 'pitLane' | 'bridge' | 'tunnel' | 'grandstand' | 'gravel' | 'grass' | 'paddock' | 'safetyCar' | 'kerb' | 'wall' | 'tireStack' | 'floodlight' | 'tree' | 'safetyBarrier';
+export type PieceType = 'straight' | 'curve' | 'startFinish' | 'sCurve' | 'pitLane' | 'bridge' | 'tunnel' | 'grandstand' | 'gravel' | 'grass' | 'paddock' | 'safetyCar' | 'kerb' | 'wall' | 'tireStack' | 'floodlight' | 'tree' | 'safetyBarrier' | 'water' | 'asphaltRunoff';
 
 export interface TrackPiece {
   id: string;
@@ -15,6 +15,8 @@ export interface TrackPiece {
   curbColor: string;
   opacity?: number;
   isLocked?: boolean;
+  label?: string;
+  theme?: 'modern' | 'classic' | 'night' | 'wet';
 }
 
 const DEFAULT_WIDTH = 80;
@@ -60,6 +62,10 @@ export const createPiece = (type: string, x: number, y: number): TrackPiece => {
       return { ...base, type, width: 40, length: 40 };
     case 'safetyBarrier':
       return { ...base, type, width: 20, length: 60, curbColor: '#3b82f6' };
+    case 'water':
+      return { ...base, type, width: 200, length: 300 };
+    case 'asphaltRunoff':
+      return { ...base, type, width: 100, length: 200 };
     default:
       return { ...base, length: 200 };
   }

@@ -72,7 +72,7 @@ export const PropertiesPanel: React.FC<Props> = ({ selectedPiece, onChange, onDe
                 <RotateCcw className="w-3 h-3 mr-1" /> Reset
               </Button>
             </Label>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <input 
                 type="range" 
                 min="-180" max="180" 
@@ -80,7 +80,13 @@ export const PropertiesPanel: React.FC<Props> = ({ selectedPiece, onChange, onDe
                 onChange={(e) => handleChange('rotation', Number(e.target.value))}
                 className="flex-1 accent-primary"
               />
-              <span className="font-mono text-sm w-12 text-right">{Math.round(selectedPiece.rotation)}°</span>
+              <Input
+                type="number"
+                value={Math.round(selectedPiece.rotation)}
+                onChange={(e) => handleChange('rotation', Number(e.target.value))}
+                className="w-20 font-mono bg-black/50 text-right"
+              />
+              <span className="text-xs text-muted-foreground">°</span>
             </div>
           </div>
         </div>
@@ -146,6 +152,28 @@ export const PropertiesPanel: React.FC<Props> = ({ selectedPiece, onChange, onDe
         {/* Styling */}
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Styling</h3>
+          <div className="space-y-2">
+            <Label>Track Theme</Label>
+            <select 
+              value={selectedPiece.theme || 'modern'} 
+              onChange={(e) => handleChange('theme', e.target.value)}
+              className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-sm"
+            >
+              <option value="modern">Modern (Dark)</option>
+              <option value="classic">Classic (Grey)</option>
+              <option value="night">Night (Deep Black)</option>
+              <option value="wet">Wet (Glossy)</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Custom Label</Label>
+            <Input 
+              value={selectedPiece.label || ''} 
+              onChange={(e) => handleChange('label', e.target.value)}
+              placeholder="e.g. Turn 1"
+              className="font-mono bg-black/50"
+            />
+          </div>
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <PaintBucket className="w-4 h-4" /> Curb Primary Color

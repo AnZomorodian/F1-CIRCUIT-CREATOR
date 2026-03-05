@@ -1,5 +1,5 @@
 import React from 'react';
-import { Minus, Spline, FlagTriangleRight, Navigation, Layout, Landmark, Construction, Trees, Grid3X3, Tent, Car, Square, Hash, CircleDot, Lightbulb } from 'lucide-react';
+import { Minus, Spline, FlagTriangleRight, Navigation, Layout, Landmark, Construction, Trees, Grid3X3, Tent, Car, Square, Hash, CircleDot, Lightbulb, Droplets } from 'lucide-react';
 
 const TOOLS = [
   { id: 'straight', name: 'Straight', icon: Minus, desc: 'High speed sector' },
@@ -22,6 +22,8 @@ const TOOLS = [
   { id: 'floodlight', name: 'Floodlight', icon: Lightbulb, desc: 'Night racing' },
   { id: 'tree', name: 'Forest Tree', icon: Trees, desc: 'Trackside scenery' },
   { id: 'safetyBarrier', name: 'Tecpro Barrier', icon: Square, desc: 'Modern safety' },
+  { id: 'water', name: 'Lake/Water', icon: Droplets, desc: 'Trackside lake' },
+  { id: 'asphaltRunoff', name: 'Runoff Area', icon: Square, desc: 'Asphalt runoff' },
 ];
 
 export const Toolbox: React.FC = () => {

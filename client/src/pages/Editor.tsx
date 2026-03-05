@@ -30,7 +30,9 @@ export default function Editor() {
   const [undoStack, setUndoStack] = useState<TrackPiece[][]>([]);
   const [redoStack, setRedoStack] = useState<TrackPiece[][]>([]);
 
-  const [autoConnect, setAutoConnect] = useState(false);
+  const [autoConnect, setAutoConnect] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [showMiniMap, setShowMiniMap] = useState(true);
 
   const GRID_SIZE = 50;
   
@@ -211,6 +213,11 @@ export default function Editor() {
     let newX = e.target.x();
     let newY = e.target.y();
 
+    if (snapToGrid) {
+      newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+      newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+    }
+
     if (autoConnect) {
       // Magnetic Snapping Logic
       const SNAP_THRESHOLD = 50; // Increased threshold for better feel
@@ -321,6 +328,9 @@ export default function Editor() {
     return acc + (p.length || 0);
   }, 0);
 
+  const avgSpeed = 240; // km/h
+  const lapTime = (totalLength / 1000) / (avgSpeed / 3600);
+
   const exportAsImage = () => {
     const uri = stageRef.current.toDataURL();
     const link = document.createElement('a');
@@ -353,6 +363,10 @@ export default function Editor() {
             <span className="text-xs font-mono text-muted-foreground uppercase">Length</span>
             <span className="text-sm font-bold text-primary">{(totalLength / 10).toFixed(1)}m</span>
           </div>
+          <div className="flex items-center gap-2 bg-black/30 rounded-lg px-3 py-1.5 border border-white/5">
+            <span className="text-xs font-mono text-muted-foreground uppercase">Est. Lap</span>
+            <span className="text-sm font-bold text-green-400">{lapTime.toFixed(2)}s</span>
+          </div>
           <Button variant="outline" size="sm" onClick={exportAsImage} className="border-white/10 hover:bg-white/5 ml-2">
             Export PNG
           </Button>
@@ -363,6 +377,22 @@ export default function Editor() {
             className={`border-white/10 ml-2 ${autoConnect ? 'bg-primary/20 text-primary border-primary/50' : 'opacity-50'}`}
           >
             Auto-Snap {autoConnect ? 'ON' : 'OFF'}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setSnapToGrid(!snapToGrid)} 
+            className={`border-white/10 ml-2 ${snapToGrid ? 'bg-primary/20 text-primary border-primary/50' : 'opacity-50'}`}
+          >
+            Grid-Snap {snapToGrid ? 'ON' : 'OFF'}
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowMiniMap(!showMiniMap)} 
+            className={`border-white/10 ml-2 ${showMiniMap ? 'bg-primary/20 text-primary border-primary/50' : 'opacity-50'}`}
+          >
+            Mini-Map {showMiniMap ? 'ON' : 'OFF'}
           </Button>
           <Button variant="outline" size="sm" onClick={clearCanvas} className="border-destructive/50 text-destructive hover:bg-destructive/10 ml-2">
             Clear
@@ -484,6 +514,26 @@ export default function Editor() {
           }}
           onDelete={deletePiece}
         />
+        
+        {/* Mini-map Overlay */}
+        {showMiniMap && pieces.length > 0 && (
+          <div className="absolute bottom-6 left-80 ml-6 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl pointer-events-none z-10">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 px-1">Circuit Preview</div>
+            <Stage width={150} height={100} scaleX={0.1} scaleY={0.1}>
+              <Layer>
+                {pieces.map((piece) => (
+                  <TrackPieceRenderer
+                    key={`mini-${piece.id}`}
+                    piece={piece}
+                    isSelected={false}
+                    onSelect={() => {}}
+                    onChange={() => {}}
+                  />
+                ))}
+              </Layer>
+            </Stage>
+          </div>
+        )}
       </div>
     </div>
   );
